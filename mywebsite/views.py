@@ -294,6 +294,25 @@ def user_leave_history(request):
     })
 
 
+#list of all leaves applied 
+def leave_application_list(request):
+    leave_applications = LeaveApplication.objects.all()
+    return render(request, 'leave_application_list.html', {'leave_applications': leave_applications})
+
+def leave_application_detail(request, pk):
+    leave_application = get_object_or_404(LeaveApplication, pk=pk)
+    return render(request, 'leave_application_detail.html', {'leave_application': leave_application})
+
+def update_leave_status(request, pk):
+    leave_application = get_object_or_404(LeaveApplication, pk=pk)
+    
+    if request.method == "POST":
+        new_status = request.POST.get('status')
+        if new_status in ['PENDING', 'APPROVED', 'REJECTED']:
+            leave_application.status = new_status
+            leave_application.save()
+    
+    return redirect('leave_application_detail', pk=pk)
 
 @login_required
 def leave_history(request):

@@ -27,6 +27,10 @@ urlpatterns = [
     path('leaves/apply/', views.apply_leave, name='apply_leave'),
     path('leaves/history/', views.leave_history, name='leave_history'),
     path('User/leaves/history/', views.user_leave_history, name='user_leave_history'),
+    #admin leaves list
+    path('leave-applications/', views.leave_application_list, name='leave_application_list'),
+    path('leave-applications/<int:pk>/', views.leave_application_detail, name='leave_application_detail'),
+    path('leave-applications/<int:pk>/update-status/', views.update_leave_status, name='update_leave_status'),
 
     # Payroll URLs
     path('payslip/', views.payslip, name='payslip'),

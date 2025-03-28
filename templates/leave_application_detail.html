@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Leave Application Details</h2>
+    <table class="table table-bordered">
+        <tr><th>Employee</th><td>{{ leave_application.employee.username }}</td></tr>
+        <tr><th>Leave Type</th><td>{{ leave_application.leave_type.name }}</td></tr>
+        <tr><th>Start Date</th><td>{{ leave_application.start_date }}</td></tr>
+        <tr><th>End Date</th><td>{{ leave_application.end_date }}</td></tr>
+        <tr><th>Days</th><td>{{ leave_application.days }}</td></tr>
+        <tr><th>Reason</th><td>{{ leave_application.reason }}</td></tr>
+        <tr><th>Status</th><td><strong>{{ leave_application.status }}</strong></td></tr>
+        <tr><th>Applied On</th><td>{{ leave_application.applied_on }}</td></tr>
+    </table>
+
+    <form method="post" action="{% url 'update_leave_status' leave_application.pk %}">
+        {% csrf_token %}
+        <label for="status">Change Status:</label>
+        <select name="status" class="form-control">
+            <option value="PENDING" {% if leave_application.status == "PENDING" %}selected{% endif %}>Pending</option>
+            <option value="APPROVED" {% if leave_application.status == "APPROVED" %}selected{% endif %}>Approved</option>
+            <option value="REJECTED" {% if leave_application.status == "REJECTED" %}selected{% endif %}>Rejected</option>
+        </select>
+        <br>
+        <button type="submit" class="btn btn-primary">Update Status</button>
+    </form>
+</div>
+{% endblock %}
