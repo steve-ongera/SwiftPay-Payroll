@@ -318,9 +318,36 @@ class EmployeeRegistrationForm(forms.ModelForm):
         ]
 
         widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'employee_id': forms.TextInput(attrs={'class': 'form-control'}),
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
             'joined_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'role': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.Select(attrs={'class': 'form-control'}),
+            'is_active_employee': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'residential_status': forms.TextInput(attrs={'class': 'form-control'}),
+            'national_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'kra_pin': forms.TextInput(attrs={'class': 'form-control'}),
+            'nssf_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'nhif_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'passport_photo': forms.FileInput(attrs={'class': 'form-control'}),
+            'basic_salary': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bank': forms.TextInput(attrs={'class': 'form-control'}),
+            'bank_account_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'bank_account_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'bank_branch': forms.TextInput(attrs={'class': 'form-control'}),
+            'employee_personal_number': forms.TextInput(attrs={'class': 'form-control'}),
             'date_of_employment': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'contract_type': forms.Select(attrs={'class': 'form-control'}),
+            'job_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'employee_email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'mobile_phone': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 
