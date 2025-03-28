@@ -203,9 +203,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Project Maintainer: Steve Ongera
+Project Maintainer: Ann Kimzy
 - Email: maintainer@swiftpayroll.com
-- Project Link: [https://github.com/steveongera/swift-payroll](https://github.com/steveongera/swift-payroll)
+- Project Link: [https://github.com/steveongera/swift-payroll](https://github.com/annnkimzy/swift-payroll)
 
 ---
 

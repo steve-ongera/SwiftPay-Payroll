@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-cli_&^3^ofo7-nmuieois(q976s!pl-ah1hh9i917q1f@u%(7g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*' , 'https://3a87-2c0f-6300-d09-fd00-9078-c21a-e6ba-311c.ngrok-free.app']
 
 
 # Application definition
@@ -39,6 +39,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://3a87-2c0f-6300-d09-fd00-9078-c21a-e6ba-311c.ngrok-free.app',
+]
+
 
 ROOT_URLCONF = 'SwiftPay.urls'
 
