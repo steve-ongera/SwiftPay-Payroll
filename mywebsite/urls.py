@@ -39,4 +39,5 @@ urlpatterns = [
     path('my-salary/', views.salary_list, name='salary_list'),
     path('general-salaries/', views.admin_salary_list, name='admin_salary_list'),
     path('salary/add/', views.add_salary, name='add_salary'),
+    path('payslip/<int:salary_id>/pdf/', views.generate_payslip_pdf, name='generate_payslip_pdf'),
 ]

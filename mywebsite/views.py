@@ -343,9 +343,36 @@ def salary_list(request):
     salaries = Salary.objects.filter(employee=request.user).order_by('-year', '-month')
     return render(request, 'salary_list.html', {'salaries': salaries})
 
+
+from django.shortcuts import render
+from mywebsite.models import Salary
+from datetime import datetime
+
 def admin_salary_list(request):
-    salaries = Salary.objects.select_related('employee').order_by('-year', '-month')
-    return render(request, 'admin_salary_list.html', {'salaries': salaries})
+    # Get the latest month and year from the database
+    latest_salary = Salary.objects.order_by('-year', '-month').first()
+    latest_month = latest_salary.month if latest_salary else datetime.today().month
+    latest_year = latest_salary.year if latest_salary else datetime.today().year
+
+    # Get filter values from the request (default to latest)
+    selected_month = request.GET.get('month', latest_month)
+    selected_year = request.GET.get('year', latest_year)
+
+    # Get salaries based on the selected month and year
+    salaries = Salary.objects.filter(month=selected_month, year=selected_year).order_by('-year', '-month')
+
+    # Pass months and years for dropdown filters
+    months = list(range(1, 13))  # Months 1-12
+    years = Salary.objects.values_list('year', flat=True).distinct().order_by('-year')
+
+    return render(request, 'admin_salary_list.html', {
+        'salaries': salaries,
+        'months': months,
+        'years': years,
+        'selected_month': int(selected_month),
+        'selected_year': int(selected_year),
+    })
+
 
 
 from .forms import SalaryForm
@@ -360,6 +387,41 @@ def add_salary(request):
         form = SalaryForm()
     
     return render(request, 'add_salary.html', {'form': form})
+
+# views.py
+from django.shortcuts import get_object_or_404
+from .models import Salary
+from .utils import render_to_pdf
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+
+def generate_payslip_pdf(request, salary_id):
+    salary = get_object_or_404(Salary, id=salary_id)
+    
+    gross_salary = salary.base_salary + salary.bonus
+    tax_amount = salary.deductions
+    
+    context = {
+        'salary': salary,
+        'gross_salary': gross_salary,
+        'tax_amount': tax_amount,
+        'company_name': 'SwiftPay',
+        'company_address': 'Kenyatta Business Rd, Nairobi',
+        'logo': 'img/logo.png',  # Make sure your logo is simple and small
+    }
+    
+    # Use the new receipt template
+    pdf = render_to_pdf('receipt_payslip.html', context)
+    
+    if pdf:
+        response = HttpResponse(pdf, content_type='application/pdf')
+        filename = f"payslip_{salary.employee.username}_{salary.month}_{salary.year}.pdf"
+        content = f"inline; filename={filename}"
+        response['Content-Disposition'] = content
+        return response
+    return HttpResponse("Error generating PDF", status=500)
+
+
 
 @login_required
 def payslip(request):

@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payslip Receipt</title>
+    <style>
+        @page {
+            size: 58mm 120mm; /* Standard thermal receipt size */
+            margin: 0;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 7px;
+            line-height: 0.9;
+            width: 54mm; /* Slightly inside 58mm to avoid cutting */
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            margin-bottom: 2px;
+        }
+        .logo {
+            height: 12px; /* Smaller logo */
+            margin-bottom: 1px;
+        }
+        .company-name {
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 2px 0;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1px;
+            padding: 0 2px;
+        }
+        .footer {
+            margin-top: 3px;
+            font-size: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo %}
+          <img src="{% static 'img/logo.png' %}" class="logo" alt="Company Logo"/>
+        {% endif %}
+        <div class="company-name">{{ company_name|upper }}</div>
+        <div>{{ company_address }}</div>
+        <div>PAYSLIP | {{ salary.get_month_name|slice:":3"|upper }} {{ salary.year }}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row"><div>EMP: {{ salary.employee.username|upper }}</div></div>
+    <div class="row"><div>ID: {{ salary.employee.id }}</div></div>
+    <div class="row"><div>DATE: {{ salary.year }}-{{ salary.month|stringformat:"02d" }}-25</div></div>
+
+    <div class="divider"></div>
+
+    <div class="row"><div>BASIC SALARY:</div> <div>Ksh {{ salary.base_salary|floatformat:2 }}</div></div>
+    <div class="row"><div>BONUS:</div> <div>Ksh {{ salary.bonus|floatformat:2 }}</div></div>
+    <div class="row"><div>GROSS PAY:</div> <div>Ksh {{ gross_salary|floatformat:2 }}</div></div>
+
+    <div class="divider"></div>
+
+    <div class="row"><div>TAX ({{ salary.tax_rate }}%):</div> <div>-Ksh {{ tax_amount|floatformat:2 }}</div></div>
+
+    <div class="divider"></div>
+
+    <div class="row" style="font-weight: bold;">
+        <div>NET PAY:</div>
+        <div>Ksh {{ salary.net_salary|floatformat:2 }}</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="footer">
+        <div>*** COMPUTER GENERATED ***</div>
+        <div>*** NO SIGNATURE REQUIRED ***</div>
+    </div>
+</body>
+</html>

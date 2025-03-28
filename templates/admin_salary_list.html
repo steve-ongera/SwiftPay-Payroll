@@ -1,11 +1,75 @@
 {% extends "base.html" %}
-
+{% load custom_filters %}  <!-- Add this line -->
 {% block content %}
+<style>
+    /* Ensure dropdown text is visible */
+    select.form-control {
+        color: black !important; 
+        background-color: white !important; 
+    }
+    
+    /* Ensure options are visible */
+    select.form-control option {
+        color: black !important;
+        background-color: white !important;
+    }
+    
+    /* Fix for some browsers that may hide text */
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    
+    /* Optional: Add border for better visibility */
+    select.form-control {
+        border: 1px solid black !important;
+    }
+    
+
+    
+</style>
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center">
         <h2>All Employees Salary Details</h2>
         <a href="{% url 'add_salary' %}" class="btn btn-success">+ Add Salary</a>
     </div>
+
+    <!-- Filter Form -->
+    <form method="GET" class="mt-3">
+        <div class="row">
+            <!-- Month Dropdown -->
+            <div class="col-md-4">
+                <label for="month" style="color: black;">Month:</label>
+                <select name="month" id="month" class="form-control text-dark bg-white">
+                    {% for month in months %}
+                    <option value="{{ month }}" {% if month == selected_month %}selected{% endif %}>
+                        {{ month|month_name_filter }}  <!-- Use the filter here -->
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <!-- Year Dropdown -->
+            <div class="col-md-4">
+                <label for="year" style="color: black;">Year:</label>
+                <select name="year" id="year" class="form-control text-dark bg-white">
+                    {% for year in years %}
+                    <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </form>
+    
+    
+    
+
     <table class="table table-bordered table-striped mt-3">
         <thead class="table-dark">
             <tr>
@@ -18,6 +82,7 @@
                 <th>Deductions</th>
                 <th>Tax Rate (%)</th>
                 <th>Net Salary</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -32,6 +97,12 @@
                 <td>Ksh {{ salary.deductions }}</td>
                 <td>{{ salary.tax_rate }}%</td>
                 <td><strong>Ksh {{ salary.net_salary }}</strong></td>
+                <!-- In your admin_salary_list.html -->
+                <td>
+                    <a href="{% url 'generate_payslip_pdf' salary.id %}" class="btn btn-sm btn-primary" target="_blank">
+                        Download Payslip
+                    </a>
+                </td>
             </tr>
             {% empty %}
             <tr>
@@ -42,3 +113,4 @@
     </table>
 </div>
 {% endblock %}
+
