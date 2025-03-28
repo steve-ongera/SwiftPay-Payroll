@@ -20,7 +20,7 @@
             {% for salary in salaries %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ salary.month }}</td>
+                <td>{{ salary.get_month_name }}</td>
                 <td>{{ salary.year }}</td>
                 <td>Ksh {{ salary.base_salary }}</td>
                 <td>Ksh {{ salary.bonus }}</td>

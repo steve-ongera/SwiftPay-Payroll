@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Department: {{ department.name }}</h2>
+    <p><strong>Description:</strong> {{ department.description }}</p>
+    <a href="{% url 'department_list' %}" class="btn btn-secondary">Back to List</a>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Department List</h2>
+    <a href="{% url 'department_create' %}" class="btn btn-success mb-3">+ Add Department</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for department in departments %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ department.name }}</td>
+                <td>{{ department.description }}</td>
+                <td>
+                    <a href="{% url 'department_detail' department.pk %}" class="btn btn-info btn-sm">View</a>
+                    <a href="{% url 'department_update' department.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No departments available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -21,7 +21,7 @@
 
         <!-- Earnings (Monthly) Card Example -->
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'employee_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
@@ -41,7 +41,7 @@
         </div>
         
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'leave_application_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
@@ -49,7 +49,7 @@
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                    Leaves
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">73</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ employees_on_leave }}</div>
                             </div>
                             <div class="col-auto">
                                 <i class="fas fa-user-plus fa-2x text-gray-300"></i>
@@ -62,16 +62,23 @@
 
         <!-- Earnings (Monthly) Card Example -->
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'admin_salary_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
+                            {% if latest_payroll %}
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Payroll
+                                     Payroll Amount 
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">19,000</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800"> 
+                                  
+                                    Ksh {{ payroll_amount|floatformat:"0" }}
+
+
+                                </div>
                             </div>
+                            {% endif %}
                             <div class="col-auto">
                                 <i class="fas fa-address-card fa-2x text-gray-300"></i>
                             </div>
@@ -83,15 +90,15 @@
 
         <!-- Earnings (Monthly) Card Example -->
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'attendance_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    NHIF
+                                    Today's Attendance
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">992</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ employees_present_today }}/{{ total_employees }} <br>  Percentage: {{ attendance_percentage }}%</div>
                             </div>
                             <div class="col-auto">
                                 <i class="fas fa-book-medical fa-2x text-gray-300"></i>
@@ -102,17 +109,36 @@
             </a>
         </div>
 
+        
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'admin_salary_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
+                            {% if latest_payroll %}
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Bank Reports
+                                    Latest Payroll
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ bank_report_count }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800"> 
+                                    {{ latest_payroll.get_month_name }} {{ latest_payroll.year }}<br>
+                                    Ksh {{ payroll_amount|floatformat:"0" }}
+
+
+                                </div>
                             </div>
+                            {% else %}
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Latest Payroll
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800"> 
+                                    No payroll records found
+
+                                </div>
+                            </div>
+                               
+                            {% endif %}
                             <div class="col-auto">
                                 <i class="fas fa-paper-plane fa-2x text-gray-300"></i>
                             </div>
@@ -123,15 +149,15 @@
         </div>
         <!-- Earnings (Monthly) Card Example -->
         <div class="col-xl-4 col-md-6 mb-4">
-            <a href="#">
+            <a href="{% url 'department_list'%}">
                 <div class="card border-left-primary shadow h-100 py-2">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    NSSF
+                                    Departments
                                 </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nssf_count }}</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_departments }}</div>
                             </div>
                             <div class="col-auto">
                                 <i class="fas fa-passport fa-2x text-gray-300"></i>

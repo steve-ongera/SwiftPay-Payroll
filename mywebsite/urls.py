@@ -40,4 +40,9 @@ urlpatterns = [
     path('general-salaries/', views.admin_salary_list, name='admin_salary_list'),
     path('salary/add/', views.add_salary, name='add_salary'),
     path('payslip/<int:salary_id>/pdf/', views.generate_payslip_pdf, name='generate_payslip_pdf'),
+
+    path('departments/', views.department_list, name='department_list'),
+    path('departments/add/', views.department_create, name='department_create'),
+    path('departments/<int:pk>/', views.department_detail, name='department_detail'),
+    path('departments/<int:pk>/edit/', views.department_update, name='department_update'),
 ]

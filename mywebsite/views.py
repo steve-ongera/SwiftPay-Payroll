@@ -4,9 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserRegistrationForm
 from .models import *
+from django.utils.timezone import now
+from django.db.models import Count
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from datetime import timedelta
+from django.db.models import Sum
 from .forms import *  # You'll create this form
 from .models import (
     CustomUser, Department, EmployeeRole, 
@@ -86,14 +89,60 @@ def dashboard(request):
     """
     Main dashboard view
     """
+    today = timezone.now().date()
+    total_employees = CustomUser.objects.count()
+    total_departments = Department.objects.count()
+
+    # Count employees on leave (Approved leaves with current date in range)
+    employees_on_leave = LeaveApplication.objects.filter(
+        status='APPROVED',
+        start_date__lte=now().date(),
+        end_date__gte=now().date()
+    ).count()
+
+    # Get latest payroll data
+    latest_payroll = Salary.objects.order_by('-year', '-month').first()
+    
+    if latest_payroll:
+        payroll_summary = Salary.objects.filter(
+            month=latest_payroll.month,
+            year=latest_payroll.year
+        ).aggregate(
+            total_net=Sum('net_salary')
+        )
+        payroll_amount = payroll_summary['total_net'] or 0
+    else:
+        payroll_amount = 0
+        latest_payroll = None
+    
+    # For counting distinct employees present today (works with all databases)
+    employees_present_today = Attendance.objects.filter(
+        date=today
+    ).values_list('employee', flat=True).distinct().count()
+    
+    # Calculate attendance percentage (with protection against division by zero)
+    attendance_percentage = 0
+    if total_employees > 0:
+        attendance_percentage = round(
+            (employees_present_today / total_employees) * 100, 
+            2
+        )
+    
     context = {
-        'total_employees': CustomUser.objects.count(),
+        'total_employees': total_employees,
+        'employees_on_leave': employees_on_leave,
+        'total_departments': total_departments,
+        # Payroll data
+        'payroll_amount': payroll_amount,
+        'latest_payroll': latest_payroll,
+        'employees_present_today': employees_present_today,
         'departments': Department.objects.all(),
         'recent_leaves': LeaveApplication.objects.filter(status='PENDING')[:5],
         'user_attendance': Attendance.objects.filter(
-            employee=request.user, 
-            date=datetime.date.today()
-        ).first()
+            employee=request.user,
+            date=today
+        ).first(),
+        'attendance_percentage': attendance_percentage
     }
     
     return render(request, 'dashboard.html', context)
@@ -435,3 +484,38 @@ def payslip(request):
         'salary': latest_salary
     }
     return render(request, 'payslip.html', context)
+
+
+
+# List all departments
+def department_list(request):
+    departments = Department.objects.all()
+    return render(request, 'departments/department_list.html', {'departments': departments})
+
+# View department details
+def department_detail(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    return render(request, 'departments/department_detail.html', {'department': department})
+
+# Create a new department
+def department_create(request):
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('department_list')
+    else:
+        form = DepartmentForm()
+    return render(request, 'departments/department_form.html', {'form': form})
+
+# Update an existing department
+def department_update(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST, instance=department)
+        if form.is_valid():
+            form.save()
+            return redirect('department_list')
+    else:
+        form = DepartmentForm(instance=department)
+    return render(request, 'departments/department_form.html', {'form': form})
