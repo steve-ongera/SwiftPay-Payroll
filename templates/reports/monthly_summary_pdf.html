@@ -1,0 +1,206 @@
+{% load pdf_filters %}
+{% load math_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Payroll Report - {{ month_name }} {{ report_year }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        .logo { 
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        h1 { 
+            font-size: 18pt;
+            margin: 5px 0;
+        }
+        h2 {
+            font-size: 14pt;
+            margin: 15px 0 10px;
+            color: #2c3e50;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+        }
+        th { 
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        .text-right { 
+            text-align: right; 
+        }
+        .text-center {
+            text-align: center;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .summary-item {
+            display: inline-block;
+            width: 32%;
+            text-align: center;
+            vertical-align: top;
+        }
+        .summary-value {
+            font-size: 12pt;
+            font-weight: bold;
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 8pt; 
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    {% load humanize %} 
+    <div class="header">
+        <img src="{{ logo_path }}" class="logo" alt="Company Logo">
+        <h1>{{ company_name }}</h1>
+        <h2>Payroll Report - {{ month_name }} {{ report_year }}</h2>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-box">
+        <div class="summary-item">
+            <div>Total Employees</div>
+            <div class="summary-value">{{ payroll_data.employee_count }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Gross Payroll</div>
+            <div class="summary-value">Ksh {{ payroll_data.total_base|default:0|intcomma }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Net Payroll</div>
+            <div class="summary-value">Ksh {{ payroll_data.total_net|default:0|intcomma }}</div>
+        </div>
+    </div>
+
+    <!-- Department Breakdown -->
+    <h2>Departmental Breakdown</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Department</th>
+                <th class="text-right">Employees</th>
+                <th class="text-right">Total Pay</th>
+                <th class="text-right">Average Pay</th>
+                <th class="text-right">% of Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dept in department_data %}
+            <tr>
+                <td>{{ dept.employee__department__name|default:"Unassigned" }}</td>
+                <td class="text-right">{{ dept.employee_count }}</td>
+                <td class="text-right">Ksh {{ dept.dept_total|default:0|intcomma }}</td>
+                <td class="text-right">Ksh {{ dept.dept_avg|default:0|intcomma }}</td>
+                <td class="text-right">{% widthratio dept.dept_total payroll_data.total_net 100 %}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>TOTAL</th>
+                <th class="text-right">{{ payroll_data.employee_count }}</th>
+                <th class="text-right">Ksh {{ payroll_data.total_net|default:0|intcomma }}</th>
+                <th class="text-right">Ksh {{ payroll_data.total_net|div:payroll_data.employee_count|floatformat:2|intcomma }}</th>
+                <th class="text-right">100%</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Top Earners -->
+    <h2>Top 10 Earners</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Employee</th>
+                <th>Department</th>
+                <th class="text-right">Base Salary</th>
+                <th class="text-right">Bonus</th>
+                <th class="text-right">Net Pay</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in top_earners %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td>{{ salary.employee.get_full_name }}</td>
+                <td>{{ salary.employee.department.name|default:"-" }}</td>
+                <td class="text-right">Ksh {{ salary.base_salary|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.bonus|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.net_salary|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Tax Summary -->
+    <h2>Tax Summary</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th class="text-right">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Total Tax Deducted</td>
+                <td class="text-right">Ksh {{ payroll_data.total_tax|default:0|intcomma }}</td>
+            </tr>
+            <tr>
+                <td>Total Bonus Payments</td>
+                <td class="text-right">Ksh {{ payroll_data.total_bonus|default:0|intcomma }}</td>
+            </tr>
+            <tr>
+                <td>Effective Tax Rate</td>
+                <td class="text-right">
+                    {% with gross=payroll_data.total_base|add:payroll_data.total_bonus %}
+                    {% if gross > 0 %}
+                        {{ payroll_data.total_tax|div:gross|mul:100|floatformat:2 }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                    {% endwith %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated on {% now "F j, Y \a\t H:i" %} | {{ company_name }} - {{ company_address }}</p>
+        <p>This is an official payroll document. Unauthorized distribution prohibited.</p>
+    </div>
+</body>
+</html>

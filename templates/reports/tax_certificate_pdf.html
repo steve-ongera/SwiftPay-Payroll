@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tax Certificate - {{ employee.get_full_name }} - {{ report_year }}</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+            @top-center {
+                content: "{{ company_name }} - Tax Certificate";
+                font-size: 10pt;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 9pt;
+            }
+        }
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        .logo {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        .certificate-title {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .employee-info {
+            width: 100%;
+            margin: 15px 0;
+            border-collapse: collapse;
+        }
+        .employee-info td {
+            padding: 5px;
+            vertical-align: top;
+        }
+        .employee-info td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        .summary-box {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .summary-item {
+            display: inline-block;
+            width: 32%;
+            text-align: center;
+            vertical-align: top;
+        }
+        .summary-value {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .monthly-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 9pt;
+        }
+        .monthly-table th, .monthly-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .monthly-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        .monthly-table .text-right {
+            text-align: right;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 8pt;
+            text-align: center;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .watermark {
+            position: fixed;
+            opacity: 0.1;
+            font-size: 60pt;
+            width: 100%;
+            text-align: center;
+            top: 40%;
+            z-index: -1;
+            transform: rotate(-30deg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark -->
+    <div class="watermark">OFFICIAL COPY</div>
+
+    <!-- Header -->
+    <div class="header">
+        <img src="{{ logo_path }}" class="logo" alt="Company Logo">
+        <div class="certificate-title">TAX CERTIFICATE</div>
+        <div>For the Year {{ report_year }}</div>
+    </div>
+
+    <!-- Employee Information -->
+    <table class="employee-info">
+        <tr>
+            <td>Employee Name:</td>
+            <td>{{ employee.get_full_name }}</td>
+            <td>Certificate Date:</td>
+            <td>{% now "F j, Y" %}</td>
+        </tr>
+        <tr>
+            <td>Employee ID:</td>
+            <td>{{ employee.employee_id|default:employee.username }}</td>
+            <td>Tax Authority:</td>
+            <td>Kenya Revenue Authority</td>
+        </tr>
+        <tr>
+            <td>Tax Identification Number:</td>
+            <td>{{ employee.tax_id|default:"Not Provided" }}</td>
+            <td>Tax Year:</td>
+            <td>{{ report_year }}</td>
+        </tr>
+    </table>
+
+    <!-- Annual Summary -->
+    <div class="summary-box">
+        <div class="summary-item">
+            <div>Total Gross Income</div>
+            <div class="summary-value">Ksh {{ gross_income|intcomma }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Total Tax Deducted</div>
+            <div class="summary-value">Ksh {{ ytd_totals.total_tax|intcomma }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Effective Tax Rate</div>
+            <div class="summary-value">{{ effective_tax_rate }}%</div>
+        </div>
+    </div>
+
+    <!-- Monthly Breakdown -->
+    <h4>Monthly Payroll Details</h4>
+    <table class="monthly-table">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th class="text-right">Basic Salary</th>
+                <th class="text-right">Bonus</th>
+                <th class="text-right">Gross Pay</th>
+                <th class="text-right">Tax Deducted</th>
+                <th class="text-right">Net Pay</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in salaries %}
+            <tr>
+                <td>{{ salary.get_month_name }}</td>
+                <td class="text-right">Ksh {{ salary.base_salary|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.bonus|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.base_salary|add:salary.bonus|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.deductions|intcomma }}</td>
+                <td class="text-right">Ksh {{ salary.net_salary|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>Year Total</th>
+                <th class="text-right">Ksh {{ ytd_totals.total_base|intcomma }}</th>
+                <th class="text-right">Ksh {{ ytd_totals.total_bonus|intcomma }}</th>
+                <th class="text-right">Ksh {{ gross_income|intcomma }}</th>
+                <th class="text-right">Ksh {{ ytd_totals.total_tax|intcomma }}</th>
+                <th class="text-right">Ksh {{ ytd_totals.total_net|intcomma }}</th>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- Tax Notes -->
+    <div style="margin-top: 20px;">
+        <h5>Tax Calculation Notes:</h5>
+        <p>1. Tax is calculated at {{ employee.tax_rate|default:"applicable" }}% rate on basic salary only.</p>
+        <p>2. Bonuses are taxed separately according to Kenya Revenue Authority guidelines.</p>
+        <p>3. Net Pay = (Basic Salary + Bonus) - Tax Deductions</p>
+    </div>
+
+    <!-- Official Footer -->
+    <div class="footer">
+        <p>This is an official tax document generated by {{ company_name }}.</p>
+        <p>Document ID: TAX-{{ report_year }}-{{ employee.employee_id|default:employee.username|upper }}</p>
+        <p>Generated on {% now "Y-m-d H:i" %} | For any discrepancies, contact payroll@{{ company_domain }}</p>
+    </div>
+</body>
+</html>

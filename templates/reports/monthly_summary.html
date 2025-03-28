@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load month_tags %}
+{% block content %}
+<style>
+    /* Force table to use maximum available width */
+.table-full {
+    width: 100% !important;
+    min-width: 100% !important;
+}
+
+/* Increase cell padding for better readability */
+.table-full th,
+.table-full td {
+    padding: 1rem !important;
+    font-size: 1.1rem;
+}
+
+/* Remove any max-width constraints from containers */
+.table-responsive {
+    overflow-x: visible !important;
+}
+
+/* Card body should allow full width */
+.card-body--full-width {
+    padding: 0 !important;
+}
+
+.card {
+    width: 100% !important;
+    min-width: 100% !important;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25);
+}
+</style>
+<div class="container-fluid py-4">
+    <!-- Report Header -->
+    <div class="card w-100 shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Monthly Payroll Summary</h2>
+                <div>
+                    <span class="badge bg-light text-dark fs-6">
+                        {{ month_name }} {{ report_year }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Month Selection Form -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label for="month" class="form-label">Month</label>
+                    <select name="month" id="month" class="form-select">
+                        {% for m in 12|months_range %}
+                            <option value="{{ m }}" {% if m == report_month %}selected{% endif %}>
+                                {{ m|month_name_filter }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="year" class="form-label">Year</label>
+                    <select name="year" id="year" class="form-select">
+                        {% for y in available_years %}
+                            <option value="{{ y }}" {% if y == report_year %}selected{% endif %}>
+                                {{ y }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Generate Report
+                    </button>
+                </div>
+                <div class="col-md-3 d-flex align-items-end justify-content-end">
+                    <a href="?month={{ report_month }}&year={{ report_year }}&format=pdf" 
+                       class="btn btn-danger w-100">
+                        <i class="fas fa-file-pdf me-2"></i>Export PDF
+                    </a>
+                </div>
+            </form>
+
+          </div>
+
+            <!-- Key Metrics Cards -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-primary border-3 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Employees</h6>
+                            <h3 class="fw-bold">{{ payroll_data.employee_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-success border-3 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Gross Payroll</h6>
+                            <h3 class="fw-bold">Ksh {{ payroll_data.total_base|default:0|intcomma }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-warning border-3 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Bonuses</h6>
+                            <h3 class="fw-bold">Ksh {{ payroll_data.total_bonus|default:0|intcomma }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-info border-3 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Net Payroll</h6>
+                            <h3 class="fw-bold">Ksh {{ payroll_data.total_net|default:0|intcomma }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Breakdown -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Departmental Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Employees</th>
+                                    <th>Total Pay</th>
+                                    <th>Average Pay</th>
+                                    <th>% of Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dept in department_data %}
+                                <tr>
+                                    <td>{{ dept.employee__department__name|default:"Unassigned" }}</td>
+                                    <td>{{ dept.employee_count }}</td>
+                                    <td>Ksh {{ dept.dept_total|default:0|intcomma }}</td>
+                                    <td>Ksh {{ dept.dept_avg|default:0|intcomma }}</td>
+                                    <td>{% widthratio dept.dept_total payroll_data.total_net 100 %}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Earners -->
+            <!-- Top Earners -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Top 10 Earners</h5>
+                </div>
+                <div class="card-body card-body--full-width">  <!-- Updated class -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-full text-center mb-0">  <!-- Updated class -->
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="min-width: 50px;">#</th>
+                                    <th style="min-width: 200px;">Employee</th>
+                                    <th style="min-width: 150px;">Department</th>
+                                    <th style="min-width: 150px;">Base Salary</th>
+                                    <th style="min-width: 150px;">Bonus</th>
+                                    <th style="min-width: 150px;">Net Pay</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for salary in top_earners %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <a href="{% url 'employee_profile' employee_id=salary.employee_id %}" class="text-nowrap">
+                                            {{ salary.employee.get_full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ salary.employee.department.name|default:"-" }}</td>
+                                    <td>Ksh {{ salary.base_salary|intcomma }}</td>
+                                    <td>Ksh {{ salary.bonus|intcomma }}</td>
+                                    <td class="fw-bold">Ksh {{ salary.net_salary|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit form when month/year changes
+['month', 'year'].forEach(id => {
+    document.getElementById(id).addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+document.getElementById('pdf-download').addEventListener('click', function() {
+    window.location.href = '?month={{ report_month }}&year={{ report_year }}&format=pdf&download=true';
+});
+</script>
+{% endblock %}

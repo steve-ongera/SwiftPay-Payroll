@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserRegistrationForm
 from .models import *
+import logging
 from django.utils.timezone import now
 from django.db.models import Count
 from django.contrib.auth.hashers import make_password
@@ -22,6 +23,9 @@ from .forms import (
     LeaveApplicationForm
 )
 import datetime
+logger = logging.getLogger(__name__)
+
+
 @login_required
 def home(request):
     """
@@ -519,3 +523,194 @@ def department_update(request, pk):
     else:
         form = DepartmentForm(instance=department)
     return render(request, 'departments/department_form.html', {'form': form})
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Sum, Count , Avg
+from .models import Salary
+from datetime import datetime
+from django.http import HttpResponseBadRequest
+
+@login_required
+@permission_required('payroll.view_salary', raise_exception=True)
+def monthly_payroll_report(request):
+    # Default to current month/year if not specified
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    
+    # Get parameters from request
+    year = int(request.GET.get('year', current_year))
+    month = int(request.GET.get('month', current_month))
+    pdf_format = request.GET.get('format') == 'pdf'
+    
+    # Validate month/year
+    if not (1 <= month <= 12) or year < 2000 or year > current_year + 1:
+        return HttpResponseBadRequest("Invalid month or year specified")
+    
+    # Main payroll aggregation
+    payroll_data = Salary.objects.filter(
+        year=year,
+        month=month
+    ).aggregate(
+        total_base=Sum('base_salary'),
+        total_bonus=Sum('bonus'),
+        total_tax=Sum('deductions'),
+        total_net=Sum('net_salary'),
+        employee_count=Count('employee', distinct=True)
+    )
+    
+    # Department breakdown
+    department_data = Salary.objects.filter(
+        year=year,
+        month=month
+    ).values(
+        'employee__department__name'
+    ).annotate(
+        dept_total=Sum('net_salary'),
+        dept_avg=Avg('net_salary'),
+        employee_count=Count('employee')
+    ).order_by('-dept_total')
+    
+    # Top earners
+    top_earners = Salary.objects.filter(
+        year=year,
+        month=month
+    ).select_related('employee').order_by('-net_salary')[:10]
+    
+    context = {
+        'report_month': month,
+        'report_year': year,
+        'month_name': datetime(year, month, 1).strftime('%B'),
+        'payroll_data': payroll_data,
+        'department_data': department_data,
+        'top_earners': top_earners,
+        'available_years': range(2020, current_year + 1),
+        'company_name': "SwiftPay",  # Add your company name
+        'company_address': "Kenyatta Business Rd, Nairobi",  # Add your address
+    }
+
+    # Handle PDF generation
+    if pdf_format:
+        try:
+            from django.template.loader import get_template
+            from xhtml2pdf import pisa
+            import os
+            from django.conf import settings
+
+            # Set PDF response headers
+            response = HttpResponse(content_type='application/pdf')
+            filename = f"payroll_report_{year}_{month}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+            # Add logo path to context
+            context['logo_path'] = os.path.join(settings.STATIC_ROOT, 'img/logo.png')
+
+            # Render PDF template
+            template = get_template('reports/monthly_summary_pdf.html')
+            html = template.render(context)
+
+            # Create PDF
+            pisa_status = pisa.CreatePDF(
+                html,
+                dest=response,
+                encoding='UTF-8',
+                link_callback=lambda uri, _: os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ''))
+            )
+
+            if pisa_status.err:
+                return HttpResponse('PDF generation failed', status=500)
+            return response
+
+        except Exception as e:
+            logger.error(f"PDF generation error: {str(e)}")
+            return HttpResponse(f'PDF generation error: {str(e)}', status=500)
+
+    return render(request, 'reports/monthly_summary.html', context)
+
+
+# views.py
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponseForbidden
+from decimal import Decimal
+
+@login_required
+def employee_tax_certificate(request, employee_id=None, year=None):
+    # Default to current user if no employee_id specified
+    if employee_id is None:
+        employee = request.user
+    else:
+        employee = get_object_or_404(CustomUser, pk=employee_id)
+    
+    # Default to previous year if not specified
+    current_year = datetime.now().year
+    report_year = int(year) if year else (current_year - 1)
+    
+    # Check permissions (users can only view their own unless they have permission)
+    if employee != request.user and not request.user.has_perm('payroll.view_salary'):
+        return HttpResponseForbidden("You don't have permission to view this report")
+    
+    # Get all salary records for the year
+    salaries = Salary.objects.filter(
+        employee=employee,
+        year=report_year
+    ).order_by('month')
+    
+    # Calculate YTD totals
+    ytd_totals = salaries.aggregate(
+        total_base=Sum('base_salary'),
+        total_bonus=Sum('bonus'),
+        total_tax=Sum('deductions'),
+        total_net=Sum('net_salary')
+    )
+    
+    # Calculate effective tax rate
+    gross_income = (ytd_totals['total_base'] or Decimal('0')) + (ytd_totals['total_bonus'] or Decimal('0'))
+    tax_paid = ytd_totals['total_tax'] or Decimal('0')
+    effective_tax_rate = (tax_paid / gross_income * 100) if gross_income > 0 else 0
+    
+    context = {
+        'employee': employee,
+        'report_year': report_year,
+        'salaries': salaries,
+        'ytd_totals': ytd_totals,
+        'gross_income': gross_income,
+        'effective_tax_rate': round(effective_tax_rate, 2),
+        'available_years': range(2020, current_year + 1),
+    }
+    
+    # PDF response if requested
+    if request.GET.get('format') == 'pdf':
+        from .utils import render_to_pdf
+        pdf = render_to_pdf('reports/tax_certificate_pdf.html', context)
+        if pdf:
+            filename = f"Tax_Certificate_{employee.username}_{report_year}.pdf"
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+    
+    return render(request, 'reports/tax_certificate.html', context)
+
+
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.conf import settings
+import os
+
+def generate_tax_certificate_pdf(request, context):
+    template = get_template('reports/tax_certificate_pdf.html')
+    html = template.render(context)
+    
+    # Handle logo path
+    logo_path = os.path.join(settings.STATIC_ROOT, 'img/logo.png')
+    context['logo_path'] = logo_path
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Tax_Certificate_{context["employee"].id}_{context["report_year"]}.pdf"'
+    
+    pisa_status = pisa.CreatePDF(
+        html,
+        dest=response,
+        link_callback=lambda uri, _: os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, '')))
+    
+    return response

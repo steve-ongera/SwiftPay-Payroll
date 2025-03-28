@@ -45,4 +45,9 @@ urlpatterns = [
     path('departments/add/', views.department_create, name='department_create'),
     path('departments/<int:pk>/', views.department_detail, name='department_detail'),
     path('departments/<int:pk>/edit/', views.department_update, name='department_update'),
+
+    path('reports/monthly/', views.monthly_payroll_report, name='monthly_payroll_report'),
+    path('reports/tax-certificate/', views.employee_tax_certificate, name='tax_certificate'),
+    path('reports/tax-certificate/<int:year>/', views.employee_tax_certificate, name='tax_certificate_year'),
+    path('reports/tax-certificate/<int:employee_id>/<int:year>/', views.employee_tax_certificate, name='tax_certificate_full'),
 ]
