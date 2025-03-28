@@ -49,15 +49,37 @@ def add_employee(request):
 
     return render(request, 'employees/add_employee.html', {'form': form})
 
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
+
 def register(request):
     if request.method == "POST":
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.password = make_password(form.cleaned_data["password"])  # Hash the password
-            user.save()
-            login(request, user)  # Auto-login after registration
-            return redirect('user_dashboard')  # Redirect to the homepage (Change to your desired page)
+            try:
+                # Save the user with the form's save method (which now handles password hashing)
+                user = form.save()
+                
+                # Authenticate and login the user
+                authenticated_user = authenticate(
+                    request,
+                    username=form.cleaned_data['username'],
+                    password=form.cleaned_data['password']
+                )
+                
+                if authenticated_user is not None:
+                    login(request, authenticated_user)
+                    return redirect('user_dashboard')
+                else:
+                    # Add error if authentication fails
+                    form.add_error(None, "Authentication failed after registration")
+            except Exception as e:
+                # Handle any other exceptions
+                form.add_error(None, f"Registration error: {str(e)}")
+        else:
+            # Form is not valid - errors will be displayed in template
+            pass
     else:
         form = CustomUserRegistrationForm()
     
@@ -329,7 +351,7 @@ def mark_attendance_for_today(request):
                 current_date += timedelta(days=1)
 
             messages.success(request, f"Attendance  applied successfully from {start_date} to {end_date}")
-            return redirect('user_leave_history')  # Redirect to leave history page
+            return redirect('user_dashboard')  # Redirect to leave history page
     else:
         form = LeaveApplicationForm()
 

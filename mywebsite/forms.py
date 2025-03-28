@@ -34,13 +34,41 @@ class UserLoginForm(forms.Form):
 from django import forms
 from .models import CustomUser
 
+from django import forms
+from .models import CustomUser
+
 class CustomUserRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
-    confirm_password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter password'}),
+        label="Password"
+    )
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm password'}),
+        label="Confirm Password"
+    )
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'employee_id', 'email', 'date_of_birth', 'gender', 'phone_number', 'address', 'password', 'confirm_password']
+        fields = [
+            'username', 
+            'employee_id', 
+            'email', 
+            'date_of_birth', 
+            'gender', 
+            'phone_number', 
+            'address',
+            'password',
+            'confirm_password'
+        ]
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter username'}),
+            'employee_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Employee ID'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter email'}),
+            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),  # Assuming gender is a choice field
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number'}),
+            'address': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter address'}),
+        }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -51,6 +79,13 @@ class CustomUserRegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Passwords do not match.")
 
         return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Hash the password
+        if commit:
+            user.save()
+        return user
 
 
 
