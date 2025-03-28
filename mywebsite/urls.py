@@ -22,6 +22,8 @@ urlpatterns = [
 
     # Attendance URLs
     path('attendance/mark/', views.mark_attendance_for_today, name='mark_attendance'),
+    path('attendance/', views.attendance_list, name='attendance_list'),
+    path('my-attendance/', views.user_attendance_list, name='user_attendance_list'),
 
     # Leave Management URLs
     path('leaves/apply/', views.apply_leave, name='apply_leave'),
@@ -34,4 +36,7 @@ urlpatterns = [
 
     # Payroll URLs
     path('payslip/', views.payslip, name='payslip'),
+    path('my-salary/', views.salary_list, name='salary_list'),
+    path('general-salaries/', views.admin_salary_list, name='admin_salary_list'),
+    path('salary/add/', views.add_salary, name='add_salary'),
 ]

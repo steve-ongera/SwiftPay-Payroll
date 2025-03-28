@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Attendance Records</h2>
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Present</th>
+                <th>On Leave</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attendance in attendances %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ attendance.date }}</td>
+                <td>{{ attendance.check_in }}</td>
+                <td>{{ attendance.check_out|default:"N/A" }}</td>
+                <td>
+                    {% if attendance.is_present %}
+                        <span class="badge bg-success">Present</span>
+                    {% else %}
+                        <span class="badge bg-danger">Absent</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attendance.is_leave %}
+                        <span class="badge bg-warning text-dark">On Leave</span>
+                    {% else %}
+                        <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No attendance records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

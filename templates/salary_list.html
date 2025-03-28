@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Salary Details</h2>
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Base Salary</th>
+                <th>Bonus</th>
+                <th>Deductions</th>
+                <th>Tax Rate (%)</th>
+                <th>Net Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in salaries %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ salary.month }}</td>
+                <td>{{ salary.year }}</td>
+                <td>Ksh {{ salary.base_salary }}</td>
+                <td>Ksh {{ salary.bonus }}</td>
+                <td>Ksh {{ salary.deductions }}</td>
+                <td>{{ salary.tax_rate }}%</td>
+                <td><strong>Ksh {{ salary.net_salary }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No salary records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

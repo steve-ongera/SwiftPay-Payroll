@@ -245,13 +245,12 @@ class SalaryForm(forms.ModelForm):
     class Meta:
         model = Salary
         fields = [
-            'base_salary', 'bonus', 'deductions', 
+            'base_salary', 'bonus', 
             'tax_rate', 'month', 'year'
         ]
         widgets = {
             'base_salary': forms.NumberInput(attrs={'class': 'form-control'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control'}),
-            'deductions': forms.NumberInput(attrs={'class': 'form-control'}),
             'tax_rate': forms.NumberInput(attrs={'class': 'form-control'}),
             'month': forms.Select(attrs={'class': 'form-control'}),
             'year': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -392,4 +391,26 @@ class EmployeeUpdateForm(forms.ModelForm):
             'job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Job Title'}),
             'employee_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Employee Email'}),
             'mobile_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mobile Phone'}),
+        }
+
+
+from django import forms
+from .models import Salary
+
+class SalaryForm(forms.ModelForm):
+    class Meta:
+        model = Salary
+        fields = [
+            'employee', 'base_salary', 'bonus', 
+            'tax_rate',  'month', 'year'
+        ]
+        widgets = {
+            'month': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
+            'year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'base_salary': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bonus': forms.NumberInput(attrs={'class': 'form-control'}),
+           
+            'tax_rate': forms.NumberInput(attrs={'class': 'form-control'}),
+            
+            'employee': forms.Select(attrs={'class': 'form-control'}),
         }

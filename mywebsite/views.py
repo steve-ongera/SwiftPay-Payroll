@@ -326,6 +326,41 @@ def leave_history(request):
     }
     return render(request, 'leave_history.html', context)
 
+# list of attendances  for admin 
+def attendance_list(request):
+    attendances = Attendance.objects.all().order_by('-date')
+    return render(request, 'attendance_list.html', {'attendances': attendances})
+
+
+@login_required
+def user_attendance_list(request):
+    attendances = Attendance.objects.filter(employee=request.user).order_by('-date')
+    return render(request, 'user_attendance_list.html', {'attendances': attendances})
+
+#salary
+@login_required
+def salary_list(request):
+    salaries = Salary.objects.filter(employee=request.user).order_by('-year', '-month')
+    return render(request, 'salary_list.html', {'salaries': salaries})
+
+def admin_salary_list(request):
+    salaries = Salary.objects.select_related('employee').order_by('-year', '-month')
+    return render(request, 'admin_salary_list.html', {'salaries': salaries})
+
+
+from .forms import SalaryForm
+
+def add_salary(request):
+    if request.method == "POST":
+        form = SalaryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_salary_list')  # Redirect to the salary list page
+    else:
+        form = SalaryForm()
+    
+    return render(request, 'add_salary.html', {'form': form})
+
 @login_required
 def payslip(request):
     """

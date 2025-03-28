@@ -130,6 +130,10 @@ class LeaveApplication(models.Model):
     def __str__(self):
         return f"{self.employee.username} - {self.leave_type.name}"
 
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from datetime import datetime
+
 class Salary(models.Model):
     """
     Salary details and calculations
@@ -137,14 +141,31 @@ class Salary(models.Model):
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     base_salary = models.DecimalField(max_digits=10, decimal_places=2)
     bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    net_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)])
-    year = models.IntegerField()
-    
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # As a percentage (e.g., 10 for 10%)
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)  # Auto-calculated
+    net_salary = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Auto-calculated
+    month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], default=datetime.today().month)
+    year = models.IntegerField(default=datetime.today().year)
+
+    def save(self, *args, **kwargs):
+        """
+        Automatically calculate deductions and net salary before saving.
+        """
+        # Tax calculation
+        tax_amount = (self.tax_rate / 100) * float(self.base_salary)
+
+        # Total deductions (You can add other deductions like NHIF, NSSF, etc.)
+        self.deductions = tax_amount  # For now, we only deduct tax
+
+        # Compute net salary
+        self.net_salary = float(self.base_salary) + float(self.bonus) - self.deductions
+
+        super(Salary, self).save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.employee.username} - {self.month}/{self.year}"
+        month_name = datetime(1900, self.month, 1).strftime('%B')  # Convert month number to name
+        return f"{self.employee.username} - {month_name} {self.year}"
+
 
 class PaySlip(models.Model):
     """
