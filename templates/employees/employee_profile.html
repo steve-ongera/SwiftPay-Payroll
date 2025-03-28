@@ -6,17 +6,19 @@
         <div class="row">
             <div class="col-md-6">
                 <span>
-                  <img src="{% if employee.passport_photo %}{{employee.passport_photo.url}}{% else %}{% static 'images/no_image.png' %}{% endif %}"
-                       WIDTH="400" HEIGHT="400"/>
+                    <img src="{% if employee.passport_photo %}{{ employee.passport_photo.url }}{% else %}{% static 'images/profile.png' %}{% endif %}" 
+                         class="rounded img-fluid"
+                         width="400" height="400"/>
                 </span>
             </div>
+            
 
             <div class="col-md-6">
 
                 <div class="content text-capitalize">
                     <h1> {{ employee.username }}</h1>
-                    <h4>{{ employee.employee_id }} {{ employee.last_name }}
-                        <small class="ml-3">( {{employee.email}} )</small>
+                    <h4>{{ employee.employee_id }} 
+                        <small class="ml-3">({{ employee.role }} )</small>
                     </h4>
                     <hr>
                     <span><strong>Phone -</strong> {{ employee.phone_number }} </span><br>
@@ -88,9 +90,9 @@
         <tbody>
             {% for salary in salary_history %}
             <tr>
-                <td>{{ salary.month }}</td>
+                <td>{{ salary.get_month_name }}</td>
                 <td>{{ salary.year }}</td>
-                <td>${{ salary.net_salary }}</td>
+                <td>ksh {{ salary.net_salary }}</td>
             </tr>
             {% empty %}
             <tr>

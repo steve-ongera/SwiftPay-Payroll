@@ -186,9 +186,13 @@
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>
-                                        <a href="{% url 'employee_profile' employee_id=salary.employee_id %}" class="text-nowrap">
-                                            {{ salary.employee.get_full_name }}
-                                        </a>
+                                        {% if salary.employee.employee_id %}
+                                            <a href="{% url 'employee_profile' employee_id=salary.employee.employee_id %}" class="text-nowrap">
+                                                {{ salary.employee.get_full_name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-danger">No ID</span>
+                                        {% endif %}
                                     </td>
                                     <td>{{ salary.employee.department.name|default:"-" }}</td>
                                     <td>Ksh {{ salary.base_salary|intcomma }}</td>
