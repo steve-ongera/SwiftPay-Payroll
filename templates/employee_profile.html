@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="">
+    <div class="container p-5">
+        <div class="row">
+            <div class="col-md-6">
+                <span>
+                  <img src="{% if employee.passport_photo %}{{employee.passport_photo.url}}{% else %}{% static 'images/no_image.png' %}{% endif %}"
+                       WIDTH="400" HEIGHT="400"/>
+                </span>
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="content text-capitalize">
+                    <h1> {{ employee.username }}</h1>
+                    <h4>{{ employee.employee_id }} {{ employee.last_name }}
+                        <small class="ml-3">( {{employee.email}} )</small>
+                    </h4>
+                    <hr>
+                    <span><strong>Phone -</strong> {{ employee.phone_number }} </span><br>
+                    <span><strong>Department -</strong> {{ employee.department }} </span>
+                    <br>
+                    <br>
+                    <p><strong>Job Title</strong></p>
+                    <p>{{ employee.role }}</p>
+                    <br>
+                    <a href="#" class="btn btn-outline-info">Get Payroll</a>
+
+                    <!-- <div class="row">
+                    <div class="col-md-6">
+                      <a href="tel:+254789268466">Call for vet</a><br>
+                    </div>
+                    <div class="col-md-6">
+                      <button class="btn btn-outline-success" (click)="submitRequest()">Request this vet</button>
+                    </div>
+                  </div> -->
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="container mt-4">
+
+  
+
+    <h4>Recent Attendance Records</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendance_records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.check_in }}</td>
+                <td>{{ record.check_out|default:"N/A" }}</td>
+                <td>{{ record.is_present|yesno:"Present,Absent" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No recent attendance records.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Salary History</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Month</th>
+                <th>Year</th>
+                <th>Net Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in salary_history %}
+            <tr>
+                <td>{{ salary.month }}</td>
+                <td>{{ salary.year }}</td>
+                <td>${{ salary.net_salary }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No salary records available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Leave History</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leave_history %}
+            <tr>
+                <td>{{ leave.leave_type.name }}</td>
+                <td>{{ leave.start_date }}</td>
+                <td>{{ leave.end_date }}</td>
+                <td>{{ leave.status }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No leave records available.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

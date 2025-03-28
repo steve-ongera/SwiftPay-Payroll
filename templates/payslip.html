@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Payslip - Payroll Management System{% endblock %}
+
+{% block content %}
+<div class="payslip-container">
+    <h1>Payslip</h1>
+
+    {% if salary %}
+    <div class="payslip-details">
+        <h2>Salary Details</h2>
+        <p><strong>Month:</strong> {{ salary.month }}/{{ salary.year }}</p>
+        <p><strong>Base Salary:</strong> {{ salary.base_salary }}</p>
+        <p><strong>Bonus:</strong> {{ salary.bonus }}</p>
+        <p><strong>Deductions:</strong> {{ salary.deductions }}</p>
+        <p><strong>Tax Rate:</strong> {{ salary.tax_rate }}%</p>
+        <p><strong>Net Salary:</strong> {{ salary.net_salary }}</p>
+    </div>
+    {% else %}
+    <p>No payslip available for the current period.</p>
+    {% endif %}
+</div>
+{% endblock %}

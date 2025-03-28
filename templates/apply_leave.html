@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Leave - Payroll Management System{% endblock %}
+
+{% block content %}
+<div class="leave-application-container">
+    <h1>Apply for Leave</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_leave_type">Leave Type</label>
+            {{ form.leave_type }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_start_date">Start Date</label>
+            {{ form.start_date }}
+        </div>
+
+        <div class="form-group">
+            <label for="id_end_date">End Date</label>
+            {{ form.end_date }}
+        </div>
+
+        <div class="form-group">
+
+        <label for="days">Total Days:</label>
+        {{ form.days }}  <!-- This will now be auto-calculated and read-only -->
+        </div>
+
+        <div class="form-group">
+            <label for="id_reason">Reason</label>
+            {{ form.reason }}
+        </div>
+
+        <button type="submit" class="btn">Submit Leave Application</button>
+    </form>
+</div>
+{% endblock %}

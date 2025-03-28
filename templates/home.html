@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Payroll Management System{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <h1>Welcome to Payroll Management System</h1>
+    
+    {% if user.is_authenticated %}
+        <p>Welcome back, {{ user.first_name }}!</p>
+        <a href="{% url 'dashboard' %}" class="btn">Go to Dashboard</a>
+    {% else %}
+        <p>Please log in to access the system.</p>
+        <a href="{% url 'login' %}" class="btn">Login</a>
+    {% endif %}
+</div>
+{% endblock %}

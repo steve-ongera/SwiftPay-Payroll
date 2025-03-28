@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave History - Payroll Management System{% endblock %}
+
+{% block content %}
+<div class="leave-history-container">
+    <h1>Leave History</h1>
+
+    <table class="leave-table">
+        <thead>
+            <tr>
+                <th>Leave Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Reason</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leaves %}
+            <tr>
+                <td>{{ leave.leave_type.name }}</td>
+                <td>{{ leave.start_date }}</td>
+                <td>{{ leave.end_date }}</td>
+                <td>{{ leave.reason }}</td>
+                <td>{{ leave.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

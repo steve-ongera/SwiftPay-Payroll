@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Attendance - Payroll Management System{% endblock %}
+
+{% block content %}
+<div class="attendance-container">
+    <h1>Mark Attendance</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" value="{{ today }}" disabled>
+        </div>
+
+        <div class="form-group">
+            <label>Leave</label>
+            <input type="checkbox" name="is_leave" id="id_is_leave">
+            <label for="id_is_leave">Mark as Leave</label>
+        </div>
+
+        <button type="submit" class="btn">Mark Attendance</button>
+    </form>
+</div>
+{% endblock %}

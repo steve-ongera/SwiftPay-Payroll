@@ -1,0 +1,109 @@
+
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Employees {% endblock %}
+
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800" style="margin-left:30px">Employees</h1>
+    </div>
+
+    <!-- Content Row -->
+    <div class="row" style="margin-left:30px">
+        <!-- page start-->
+        <section class="panel">
+            <header class="panel-heading" style="margin-bottom:5px">
+                <a href="#" style="color:white; margin-bottom:20px" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> Add </a>
+            </header>
+            <!--Modal: modalConfirmDelete-->
+
+            <div class="filter-section">
+                <form method="get">
+                    <select name="department">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.name }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+        
+                    <select name="role">
+                        <option value="">All Roles</option>
+                        {% for role in roles %}
+                            <option value="{{ role.title }}">{{ role.title }}</option>
+                        {% endfor %}
+                    </select>
+        
+                    <button type="submit" class="btn btn-primary btn-xs">Filter</button>
+                </form>
+            </div>
+            
+            <!--Modal: modalConfirmDelete-->
+            <table class="table table-hover p-table responsive" width="100%" id="employees">
+                <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for employee in employees %}
+                <tr>
+                    <td>{{ employee.employee_id }}</td>
+                    <td>{{ employee.first_name }} {{ employee.last_name }}</td>
+                    <td>{{ employee.department.name }}</td>
+                    <td>{{ employee.role.title }}</td>
+                    <td>
+                        {% if employee.employee_id %}
+                            <a href="{% url 'employee_profile' employee_id=employee.employee_id %}" class="btn">View Profile</a>
+                        {% else %}
+                            <span class="text-muted">No Profile</span>
+                        {% endif %}
+
+
+                    </td>
+                    <td>
+                        {% if employee.employee_id %}
+                            <a  href="{% url 'employee_profile' employee_id=employee.employee_id %}" class="btn btn-primary btn-xs"><i
+                                class="fa fa-folder"></i> View
+                           </a>
+                        {% else %}
+                            <span class="text-muted">No Profile</span>
+                        {% endif %}
+                        
+                        <a href="#" class="btn btn-info btn-xs"><i
+                                class="fa fa-pencil"></i> Edit </a>
+                        <a role="button" href="#" style="color:white" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Delete </a>
+
+
+                    </td>
+                    {% empty %}
+                    <td class="p-name">
+                        <a>You haven't added any employees yet</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </section>
+        <!-- page end-->
+
+    </div>
+    <!-- Content Row -->
+
+
+    <!-- Content Row -->
+</div>
+<!-- End of Main Content -->
+
+{% endblock %}
