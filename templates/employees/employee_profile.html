@@ -27,6 +27,9 @@
                     <p>{{ employee.role }}</p>
                     <br>
                     <a href="#" class="btn btn-outline-info">Get Payroll</a>
+                    <a href="{% url 'update_employee' employee_id=employee.employee_id %}" class="btn btn-outline-info">
+                        <i class="fa fa-pencil"></i> Edit
+                    </a>
 
                     <!-- <div class="row">
                     <div class="col-md-6">

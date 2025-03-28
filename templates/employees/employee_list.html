@@ -81,9 +81,20 @@
                             <span class="text-muted">No Profile</span>
                         {% endif %}
                         
-                        <a href="#" class="btn btn-info btn-xs"><i
-                                class="fa fa-pencil"></i> Edit </a>
-                        <a role="button" href="#" style="color:white" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Delete </a>
+                        {% if employee.employee_id %}
+                            <a href="{% url 'update_employee' employee_id=employee.employee_id %}" class="btn btn-info btn-xs">
+                                <i class="fa fa-pencil"></i> Edit
+                            </a>
+
+
+                            <a role="button" href="{% url 'employee_delete' employee.employee_id %}"  style="color:white" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Delete </a>
+
+                            
+                            
+                        {% else %}
+                            <span class="text-muted">No Profile</span>
+                        {% endif %}
+                        
 
 
                     </td>

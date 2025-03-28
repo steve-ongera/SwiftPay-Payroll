@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Sign Attendance for Today</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="id_start_date" class="form-label">Start Date</label>
+                {{ form.start_date }}
+                {% if form.start_date.errors %}
+                    <div class="invalid-feedback">{{ form.start_date.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="id_end_date" class="form-label">End Time  Date</label>
+                {{ form.end_date }}
+                {% if form.end_date.errors %}
+                    <div class="invalid-feedback">{{ form.end_date.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_reason" class="form-label">Your Names and Identification (Optional)</label>
+            {{ form.reason }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Attendance Application</button>
+    </form>
+</div>
+{% endblock %}

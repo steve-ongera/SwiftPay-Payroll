@@ -48,51 +48,80 @@
         <!-- Divider -->
         <hr class="sidebar-divider my-0">
 
-        <!-- Nav Item - Dashboard -->
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'dashboard' %}">
-                <i class="fas fa-fw fa-tachometer-alt"></i>
-                <span>Dashboard</span></a>
-        </li>
+        {% if user.is_authenticated %}
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+            
+            <!-- Admin Sidebar -->
+            {% if user.is_superuser %}
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'dashboard' %}">
+                        <i class="fas fa-fw fa-user-shield"></i>
+                        <span>Admin Dashboard</span></a>
+                </li>
 
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'employee_list' %}">
-                <i class="fas fa-fw fa-user-friends"></i>
-                <span>Employees</span></a>
-        </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'employee_list' %}">
+                        <i class="fas fa-fw fa-user-friends"></i>
+                        <span>Manage Employees</span></a>
+                </li>
 
-        <li class="nav-item active">
-            <a class="nav-link" href="/apply_leave">
-                <i class="fas fa-fw fa-plus"></i>
-                <span>Apply for Leave</span></a>
-        </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'leave_history' %}">
+                        <i class="fas fa-fw fa-calendar-check"></i>
+                        <span>Leave Requests</span></a>
+                </li>
 
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'leave_history'%}">
-                <i class="fas fa-fw fa-address-card"></i>
-                <span>Leave History</span></a>
-        </li>
-        <li class="nav-item active">
-            <a class="nav-link" href="/payslip">
-                <i class="fas fa-fw fa-book-medical"></i>
-                <span>Payslip</span></a>
-        </li>
-        <li class="nav-item active">
-            <a class="nav-link" href="/mark_attendance">
-                <i class="fas fa-fw fa-book-medical"></i>
-                <span>mark attendance</span></a>
-        </li>
-        
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'login' %}">
-                <i class="fas fa-fw fa-paper-plane"></i>
-                <span>Login</span></a>
-        </li>
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'logout' %}">
-                <i class="fas fa-fw fa-passport"></i>
-                <span>logout </span></a>
-        </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-fw fa-book-medical"></i>
+                        <span>Attendance Records</span></a>
+                </li>
+
+            {% else %}
+                <!-- User Sidebar -->
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'user_dashboard' %}">
+                        <i class="fas fa-fw fa-tachometer-alt"></i>
+                        <span>Dashboard</span></a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'apply_leave'%}">
+                        <i class="fas fa-fw fa-plus"></i>
+                        <span>Apply for Leave</span></a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'user_leave_history'%}">
+                        <i class="fas fa-fw fa-address-card"></i>
+                        <span>Leave History</span></a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="/payslip">
+                        <i class="fas fa-fw fa-file-invoice-dollar"></i>
+                        <span>Payslip</span></a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'mark_attendance'%}">
+                        <i class="fas fa-fw fa-check-circle"></i>
+                        <span>Mark Attendance</span></a>
+                </li>
+            {% endif %}
+
+            <!-- Common Links (Visible to Everyone) -->
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <i class="fas fa-fw fa-sign-out-alt"></i>
+                    <span>Logout</span></a>
+            </li>
+
+        </ul>
+        <!-- End of Sidebar -->
+    {% endif %}
+
 
         <!-- Divider -->
         <hr class="sidebar-divider">

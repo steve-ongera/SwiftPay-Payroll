@@ -17,13 +17,16 @@ urlpatterns = [
     path('employee/add/', views.add_employee, name='add_employee'),
     path('employees/register/', views.register_employee, name='register_employee'),
     path('employees/profile/<str:employee_id>/', views.employee_profile, name='employee_profile'),
+    path('update-employee/<str:employee_id>/', views.update_employee, name='update_employee'),
+    path('employee/delete/<str:employee_id>/', views.delete_employee, name='employee_delete'),
 
     # Attendance URLs
-    path('attendance/mark/', views.mark_attendance, name='mark_attendance'),
+    path('attendance/mark/', views.mark_attendance_for_today, name='mark_attendance'),
 
     # Leave Management URLs
     path('leaves/apply/', views.apply_leave, name='apply_leave'),
     path('leaves/history/', views.leave_history, name='leave_history'),
+    path('User/leaves/history/', views.user_leave_history, name='user_leave_history'),
 
     # Payroll URLs
     path('payslip/', views.payslip, name='payslip'),

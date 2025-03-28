@@ -41,6 +41,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'SwiftPay.urls'
 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/login'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

@@ -1,49 +1,28 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="container">
-    <h2>Welcome, {{ employee.username }}!</h2>
-    
-    <h3>Your Profile</h3>
-    <p><strong>Employee ID:</strong> {{ employee.employee_id }}</p>
-    <p><strong>Department:</strong> {{ employee.department.name }}</p>
-    <p><strong>Role:</strong> {{ employee.role.title }}</p>
+<link href="{% static 'css/user-dashboard.css'  %}" rel="stylesheet">
 
-    <h3>Recent Attendance</h3>
-    <ul>
-        {% for record in attendance_records %}
-            <li>{{ record.date }} - {% if record.is_present %} Present {% else %} Absent {% endif %}</li>
-        {% endfor %}
-    </ul>
+<div class="user-dashboard">
+    <div class="dashboard-header">
+        <h1>Welcome, {{ employee.username }}!</h1>
+    </div>
 
-    <h3>Recent Leave Applications</h3>
-    <ul>
-        {% for leave in leave_applications %}
-            <li>{{ leave.start_date }} to {{ leave.end_date }} - {{ leave.status }}</li>
-        {% endfor %}
-    </ul>
+    <div class="dashboard-content">
+        <div class="profile-section">
+            <h2 class="section-title">Your Profile</h2>
+            <div class="profile-details">
+                <div><strong>Employee ID:</strong> {{ employee.employee_id }}</div>
+                <div><strong>Department:</strong> {{ employee.department.name }}</div>
+                <div><strong>Role:</strong> {{ employee.role.title }}</div>
+            </div>
+        </div>
 
-    <h3>Recent Salary Records</h3>
-    <ul>
-        {% for salary in salary_details %}
-            <li>{{ salary.month }}/{{ salary.year }} - KES {{ salary.net_salary }}</li>
-        {% endfor %}
-    </ul>
 
-    <h3>Recent Payslips</h3>
-    <ul>
-        {% for payslip in payslips %}
-            <li>{{ payslip.issue_date }} - Receipt: {{ payslip.receipt_number }}</li>
-        {% endfor %}
-    </ul>
+        <button class="logout-button">Logout</button>
 
-    <h3>Recent Tax Declarations</h3>
-    <ul>
-        {% for tax in tax_declarations %}
-            <li>{{ tax.financial_year }} - Investment: KES {{ tax.total_investment }}</li>
-        {% endfor %}
-    </ul>
-
-    <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+    </div>
 </div>
+
 {% endblock %}

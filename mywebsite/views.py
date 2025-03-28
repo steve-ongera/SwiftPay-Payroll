@@ -6,7 +6,8 @@ from .forms import CustomUserRegistrationForm
 from .models import *
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from .forms import EmployeeRegistrationForm  # You'll create this form
+from datetime import timedelta
+from .forms import *  # You'll create this form
 from .models import (
     CustomUser, Department, EmployeeRole, 
     Attendance, Salary, PaySlip, 
@@ -14,11 +15,11 @@ from .models import (
 )
 from .forms import (
     UserRegistrationForm, UserLoginForm, 
-    EmployeeProfileForm, AttendanceForm,
+    EmployeeProfileForm,
     LeaveApplicationForm
 )
 import datetime
-
+@login_required
 def home(request):
     """
     Home page view
@@ -39,7 +40,7 @@ def add_employee(request):
     else:
         form = EmployeeRegistrationForm()
 
-    return render(request, 'add_employee.html', {'form': form})
+    return render(request, 'employees/add_employee.html', {'form': form})
 
 def register(request):
     if request.method == "POST":
@@ -141,7 +142,7 @@ def register_employee(request):
     else:
         form = UserRegistrationForm()
     
-    return render(request, 'register_employee.html', {'form': form})
+    return render(request, 'employees/register_employee.html', {'form': form})
 
 @login_required
 def employee_list(request):
@@ -164,7 +165,7 @@ def employee_list(request):
         'departments': Department.objects.all(),
         'roles': EmployeeRole.objects.all()
     }
-    return render(request, 'employee_list.html', context)
+    return render(request, 'employees/employee_list.html', context)
 
 @login_required
 def employee_profile(request, employee_id):
@@ -179,57 +180,120 @@ def employee_profile(request, employee_id):
         'salary_history': Salary.objects.filter(employee=employee),
         'leave_history': LeaveApplication.objects.filter(employee=employee)
     }
-    return render(request, 'employee_profile.html', context)
+    return render(request, 'employees/employee_profile.html', context)
+
+
+def update_employee(request, employee_id):
+    employee = get_object_or_404(CustomUser, employee_id=employee_id)
+
+    if request.method == 'POST':
+        # If joined_date is not in POST data, use the existing value
+        post_data = request.POST.copy()
+        if not post_data.get('joined_date'):
+            post_data['joined_date'] = employee.joined_date
+
+        form = EmployeeUpdateForm(post_data, request.FILES, instance=employee)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Employee details updated successfully!")
+            return redirect('employee_profile', employee_id=employee.employee_id)
+        else:
+            print("Form Errors:", form.errors)
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = EmployeeUpdateForm(instance=employee)
+
+    return render(request, 'employees/update_employee.html', {'form': form, 'employee': employee})
+
+def delete_employee(request, employee_id):
+    employee = get_object_or_404(CustomUser, employee_id=employee_id)
+
+    if request.method == "POST":
+        employee.delete()
+        messages.success(request, f'Employee {employee.first_name} {employee.last_name} has been deleted.')
+        return redirect('employee_list')  # Redirect to employee list after deletion
+
+    return render(request, 'employees/confirm_delete.html', {'employee': employee})
+
 
 @login_required
-def mark_attendance(request):
-    """
-    Attendance marking view
-    """
-    if request.method == 'POST':
-        form = AttendanceForm(request.POST)
-        if form.is_valid():
-            attendance = form.save(commit=False)
-            attendance.employee = request.user
-            attendance.date = datetime.date.today()
-            attendance.check_in = datetime.datetime.now()
-            attendance.save()
-            messages.success(request, 'Attendance marked successfully!')
-            return redirect('dashboard')
-    else:
-        # Check if attendance already marked today
-        existing_attendance = Attendance.objects.filter(
-            employee=request.user, 
-            date=datetime.date.today()
-        ).exists()
-        
-        if existing_attendance:
-            messages.warning(request, 'Attendance already marked for today!')
-            return redirect('dashboard')
-        
-        form = AttendanceForm()
-    
-    return render(request, 'mark_attendance.html', {'form': form})
-
 def apply_leave(request):
-    """
-    View for employees to apply for leave
-    """
     if request.method == 'POST':
         form = LeaveApplicationForm(request.POST)
         if form.is_valid():
-            leave_application = form.save(commit=False)  # Save but don't commit
-            leave_application.employee = request.user  # Assign the logged-in user
-            leave_application.save()  # Now save to the database
+            # Manually calculate days
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            
+            # Calculate number of days (inclusive of start and end dates)
+            days = (end_date - start_date).days + 1
+            
+            leave_application = form.save(commit=False)
+            leave_application.employee = request.user
+            leave_application.days = days  # Explicitly set days
+            leave_application.save()
 
             messages.success(request, "Leave application submitted successfully!")
-            return redirect('leave_history')
-        else:
-            messages.error(request, "Please correct the errors below.")
+            return redirect('user_leave_history')
     else:
         form = LeaveApplicationForm()
 
     return render(request, 'apply_leave.html', {'form': form})
+
+
+
+#mark attendance
+@login_required
+def mark_attendance_for_today(request):
+    if request.method == 'POST':
+        form = AttendanceApplicationForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_date']
+            end_date = form.cleaned_data['end_date']
+            reason = form.cleaned_data.get('reason', '')
+
+            # Create leave entries for each day in the range
+            current_date = start_date
+            while current_date <= end_date:
+                # Check if attendance record already exists
+                attendance, created = Attendance.objects.get_or_create(
+                    employee=request.user,
+                    date=current_date,
+                    defaults={
+                        'check_in': current_date,
+                        'is_present': False,
+                        'is_leave': True
+                    }
+                )
+
+                # Update existing record if not created
+                if not created:
+                    attendance.is_leave = True
+                    attendance.is_present = False
+                    attendance.save()
+
+                current_date += timedelta(days=1)
+
+            messages.success(request, f"Attendance  applied successfully from {start_date} to {end_date}")
+            return redirect('user_leave_history')  # Redirect to leave history page
+    else:
+        form = LeaveApplicationForm()
+
+    return render(request, 'attendance_apply_leave.html', {'form': form})
+
+
+@login_required
+def user_leave_history(request):
+    leave_applications = LeaveApplication.objects.filter(
+        employee=request.user
+    ).order_by('-applied_on')
+
+    return render(request, 'employees/user_leave_history.html', {
+        'leave_applications': leave_applications
+    })
+
+
 
 @login_required
 def leave_history(request):

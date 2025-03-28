@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Update Employee Details - {{ employee.employee_id }} {{ employee.last_name }}</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id_employee_id" class="form-label">Employee ID</label>
+            {{ form.employee_id }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_middle_name" class="form-label">Middle Name</label>
+            {{ form.middle_name }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_last_name" class="form-label">Last Name</label>
+            {{ form.last_name }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id_date_of_birth" class="form-label">Date of Birth</label>
+            {{ form.date_of_birth }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_gender" class="form-label">Gender</label>
+            {{ form.gender }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_phone_number" class="form-label">Phone Number</label>
+            {{ form.phone_number }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id_department" class="form-label">Department</label>
+            {{ form.department }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_role" class="form-label">Role</label>
+            {{ form.role }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_is_active_employee" class="form-label">Active Employee</label>
+            {{ form.is_active_employee }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id_basic_salary" class="form-label">Basic Salary</label>
+            {{ form.basic_salary }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_bank" class="form-label">Bank Name</label>
+            {{ form.bank }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_bank_account_number" class="form-label">Bank Account Number</label>
+            {{ form.bank_account_number }}
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label for="id_employee_email" class="form-label">Employee Email</label>
+            {{ form.employee_email }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_mobile_phone" class="form-label">Mobile Phone</label>
+            {{ form.mobile_phone }}
+        </div>
+        <div class="col-md-4">
+            <label for="id_passport_photo" class="form-label">Passport Photo</label>
+            {{ form.passport_photo }}
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+</form>
+</div>
+{% endblock %}

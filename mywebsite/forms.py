@@ -7,6 +7,11 @@ from .models import (
     LeaveType, TaxDeclaration
 )
 
+# forms.py
+from django import forms
+from .models import LeaveApplication, LeaveType
+from django.utils import timezone
+from datetime import timedelta
 class UserLoginForm(forms.Form):
     """
     Login form for users
@@ -135,53 +140,101 @@ class EmployeeProfileForm(forms.ModelForm):
             'role': forms.Select(attrs={'class': 'form-control'}),
         }
 
-class AttendanceForm(forms.ModelForm):
-    """
-    Attendance marking form
-    """
-    class Meta:
-        model = Attendance
-        fields = ['check_in', 'check_out', 'is_leave']
-        widgets = {
-            'check_in': forms.DateTimeInput(attrs={
-                'class': 'form-control', 
-                'type': 'datetime-local'
-            }),
-            'check_out': forms.DateTimeInput(attrs={
-                'class': 'form-control', 
-                'type': 'datetime-local'
-            }),
-        }
-
 class LeaveApplicationForm(forms.ModelForm):
-    """
-    Leave application form
-    """
+    leave_type = forms.ModelChoiceField(
+        queryset=LeaveType.objects.all(), 
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Select the type of leave you're applying for"
+    )
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text="First day of your leave"
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text="Last day of your leave"
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        help_text="Provide a reason for your leave application"
+    )
+
     class Meta:
         model = LeaveApplication
-        fields = ['leave_type', 'start_date', 'end_date', 'reason', 'days']
-        widgets = {
-            'leave_type': forms.Select(attrs={'class': 'form-control'}),
-            'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'days': forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),  # Disable manual input
-        }
+        fields = ['leave_type', 'start_date', 'end_date', 'reason']
 
     def clean(self):
-        """
-        Validate leave dates and calculate leave days
-        """
         cleaned_data = super().clean()
-        start_date = cleaned_data.get("start_date")
-        end_date = cleaned_data.get("end_date")
-
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        leave_type = cleaned_data.get('leave_type')
+        
+        # Validate date range
         if start_date and end_date:
             if start_date > end_date:
                 raise forms.ValidationError("End date must be after start date")
             
-            # Auto-calculate the number of leave days
-            cleaned_data['days'] = (end_date - start_date).days + 1
+            # Calculate number of days
+            days = (end_date - start_date).days + 1
+            cleaned_data['days'] = days
+
+            # Check leave type annual limit
+            if leave_type:
+                current_year = timezone.now().year
+                existing_leaves = LeaveApplication.objects.filter(
+                    employee=self.initial.get('employee'),
+                    leave_type=leave_type,
+                    start_date__year=current_year,
+                    status__in=['PENDING', 'APPROVED']
+                )
+                
+                total_days = sum(leave.days for leave in existing_leaves)
+                total_days += days
+
+                # Detailed error message
+                if total_days > leave_type.max_days_per_year:
+                    remaining_days = leave_type.max_days_per_year - (total_days - days)
+                    error_message = (
+                        f"You have exceeded the maximum allowed {leave_type.name} days. "
+                        f"Maximum allowed: {leave_type.max_days_per_year} days, "
+                        f"Already used/pending: {total_days - days} days, "
+                        f"Remaining days: {remaining_days} days"
+                    )
+                    raise forms.ValidationError(error_message)
+
+        return cleaned_data
+
+# forms.py
+from django import forms
+from .models import Attendance, CustomUser
+#attendance signing
+class AttendanceApplicationForm(forms.ModelForm):
+    start_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text="Start date of your todays job"
+    )
+    end_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text="End date of your leave"
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False,
+        help_text="Optional: Provide reason for leave"
+    )
+
+    class Meta:
+        model = Attendance
+        fields = ['start_date', 'end_date', 'reason']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date:
+            if start_date > end_date:
+                raise forms.ValidationError("End date must be after start date")
         
         return cleaned_data
 
@@ -268,4 +321,48 @@ class EmployeeRegistrationForm(forms.ModelForm):
             'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'joined_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'date_of_employment': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+
+class EmployeeUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = [
+            'employee_id', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'phone_number', 
+            'address', 'joined_date', 'role', 'department', 'is_active_employee', 
+            'residential_status', 'national_id', 'kra_pin', 'nssf_no', 'nhif_no', 
+            'passport_photo', 'basic_salary', 'bank', 'bank_account_name', 'bank_account_number', 
+            'bank_branch', 'employee_personal_number', 'date_of_employment', 'contract_type', 
+            'job_title', 'employee_email', 'mobile_phone'
+        ]
+
+        widgets = {
+            'employee_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
+            'middle_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Middle Name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
+            'date_of_birth': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'gender': forms.Select(attrs={'class': 'form-select'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Address'}),
+            'joined_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'is_active_employee': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'residential_status': forms.Select(attrs={'class': 'form-select'}),
+            'national_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'National ID'}),
+            'kra_pin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'KRA PIN'}),
+            'nssf_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NSSF Number'}),
+            'nhif_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'NHIF Number'}),
+            'passport_photo': forms.FileInput(attrs={'class': 'form-control'}),
+            'basic_salary': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Basic Salary'}),
+            'bank': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Name'}),
+            'bank_account_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account Name'}),
+            'bank_account_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account Number'}),
+            'bank_branch': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Branch'}),
+            'employee_personal_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Personal Number'}),
+            'date_of_employment': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contract_type': forms.Select(attrs={'class': 'form-select'}),
+            'job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Job Title'}),
+            'employee_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Employee Email'}),
+            'mobile_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Mobile Phone'}),
         }
