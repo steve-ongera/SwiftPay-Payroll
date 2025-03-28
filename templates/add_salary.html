@@ -5,42 +5,46 @@
     <h2>Add Employee Salary</h2>
     <form method="post" class="mt-3">
         {% csrf_token %}
+        
         <div class="mb-3">
-            {{ form.employee.label_tag }}
+            <label class="form-label">{{ form.employee.label }}</label>
             {{ form.employee }}
         </div>
+        
         <div class="row">
             <div class="col-md-4">
-                {{ form.base_salary.label_tag }}
+                <label class="form-label">{{ form.base_salary.label }}</label>
                 {{ form.base_salary }}
             </div>
             <div class="col-md-4">
-                {{ form.bonus.label_tag }}
+                <label class="form-label">{{ form.bonus.label }}</label>
                 {{ form.bonus }}
             </div>
             <div class="col-md-4">
-                {{ form.deductions.label_tag }}
+                <label class="form-label">{{ form.deductions.label }}</label>
                 {{ form.deductions }}
             </div>
         </div>
+
         <div class="row mt-2">
             <div class="col-md-4">
-                {{ form.tax_rate.label_tag }}
+                <label class="form-label">{{ form.tax_rate.label }}</label>
                 {{ form.tax_rate }}
             </div>
             <div class="col-md-4">
-                {{ form.net_salary.label_tag }}
+                <label class="form-label">{{ form.net_salary.label }}</label>
                 {{ form.net_salary }}
             </div>
             <div class="col-md-2">
-                {{ form.month.label_tag }}
+                <label class="form-label">{{ form.month.label }}</label>
                 {{ form.month }}
             </div>
             <div class="col-md-2">
-                {{ form.year.label_tag }}
+                <label class="form-label">{{ form.year.label }}</label>
                 {{ form.year }}
             </div>
         </div>
+
         <button type="submit" class="btn btn-success mt-3">Save Salary</button>
     </form>
 </div>

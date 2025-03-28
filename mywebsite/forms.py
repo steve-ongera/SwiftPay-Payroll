@@ -238,23 +238,6 @@ class AttendanceApplicationForm(forms.ModelForm):
         
         return cleaned_data
 
-class SalaryForm(forms.ModelForm):
-    """
-    Salary processing form
-    """
-    class Meta:
-        model = Salary
-        fields = [
-            'base_salary', 'bonus', 
-            'tax_rate', 'month', 'year'
-        ]
-        widgets = {
-            'base_salary': forms.NumberInput(attrs={'class': 'form-control'}),
-            'bonus': forms.NumberInput(attrs={'class': 'form-control'}),
-            'tax_rate': forms.NumberInput(attrs={'class': 'form-control'}),
-            'month': forms.Select(attrs={'class': 'form-control'}),
-            'year': forms.NumberInput(attrs={'class': 'form-control'}),
-        }
 
 class TaxDeclarationForm(forms.ModelForm):
     """
@@ -396,21 +379,36 @@ class EmployeeUpdateForm(forms.ModelForm):
 
 from django import forms
 from .models import Salary
-
+import datetime
 class SalaryForm(forms.ModelForm):
+    MONTH_CHOICES = [
+        (1, "January"), (2, "February"), (3, "March"), (4, "April"),
+        (5, "May"), (6, "June"), (7, "July"), (8, "August"),
+        (9, "September"), (10, "October"), (11, "November"), (12, "December"),
+    ]
+
+    month = forms.ChoiceField(
+        choices=MONTH_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    deductions = forms.DecimalField(
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+        required=False
+    )
+
+    net_salary = forms.DecimalField(
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+        required=False
+    )
+
     class Meta:
         model = Salary
-        fields = [
-            'employee', 'base_salary', 'bonus', 
-            'tax_rate',  'month', 'year'
-        ]
+        fields = ['employee', 'base_salary', 'bonus', 'tax_rate', 'month', 'year']
         widgets = {
-            'month': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 12}),
-            'year': forms.NumberInput(attrs={'class': 'form-control'}),
+            'employee': forms.Select(attrs={'class': 'form-control'}),
             'base_salary': forms.NumberInput(attrs={'class': 'form-control'}),
             'bonus': forms.NumberInput(attrs={'class': 'form-control'}),
-           
             'tax_rate': forms.NumberInput(attrs={'class': 'form-control'}),
-            
-            'employee': forms.Select(attrs={'class': 'form-control'}),
+            'year': forms.NumberInput(attrs={'class': 'form-control'}),
         }

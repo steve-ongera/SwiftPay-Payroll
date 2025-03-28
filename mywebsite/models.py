@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from decimal import Decimal
+from datetime import datetime
 
 class Allowance(models.Model):
     name = models.CharField(max_length=100)
@@ -134,37 +136,34 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from datetime import datetime
 
+from calendar import month_name
+from decimal import Decimal
+from django.core.validators import MinValueValidator, MaxValueValidator
+from datetime import datetime
+
 class Salary(models.Model):
-    """
-    Salary details and calculations
-    """
-    employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    employee = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     base_salary = models.DecimalField(max_digits=10, decimal_places=2)
-    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # As a percentage (e.g., 10 for 10%)
-    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0, editable=False)  # Auto-calculated
-    net_salary = models.DecimalField(max_digits=10, decimal_places=2, editable=False)  # Auto-calculated
+    bonus = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.00'))
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), editable=False)
+    net_salary = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     month = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(12)], default=datetime.today().month)
     year = models.IntegerField(default=datetime.today().year)
 
+    def get_month_name(self):
+        """Convert month number to month name"""
+        return month_name[self.month]  # Converts 1 → 'January', 2 → 'February', etc.
+
     def save(self, *args, **kwargs):
-        """
-        Automatically calculate deductions and net salary before saving.
-        """
-        # Tax calculation
-        tax_amount = (self.tax_rate / 100) * float(self.base_salary)
-
-        # Total deductions (You can add other deductions like NHIF, NSSF, etc.)
-        self.deductions = tax_amount  # For now, we only deduct tax
-
-        # Compute net salary
-        self.net_salary = float(self.base_salary) + float(self.bonus) - self.deductions
-
+        tax_amount = (self.tax_rate / Decimal('100')) * self.base_salary
+        self.deductions = tax_amount
+        self.net_salary = self.base_salary + self.bonus - self.deductions
         super(Salary, self).save(*args, **kwargs)
 
     def __str__(self):
-        month_name = datetime(1900, self.month, 1).strftime('%B')  # Convert month number to name
-        return f"{self.employee.username} - {month_name} {self.year}"
+        return f"{self.employee.username} - {self.get_month_name()} {self.year}"
+
 
 
 class PaySlip(models.Model):
